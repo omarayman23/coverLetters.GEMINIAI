@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Cover Letter Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/html-to-docx@1.8.0/dist/html-to-docx.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #e0f2fe; /* light blue */
+            --bg-secondary: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --border-color: #cbd5e1;
+            --accent-color: #3b82f6;
+        }
+
+        .dark-mode {
+            --bg-primary: #0f172a; /* dark blue */
+            --bg-secondary: #1e293b;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --accent-color: #60a5fa;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .editor-container {
+            background-color: var(--bg-secondary);
+            transition: background-color 0.3s;
+        }
+
+        .form-input, .font-select, .form-textarea {
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .paragraph-option {
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .paragraph-option:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .paragraph-option.selected {
+            border-color: var(--accent-color);
+            background-color: color-mix(in srgb, var(--accent-color) 15%, transparent);
+        }
+
+        #cover-letter-preview {
+            color: #1e293b; /* Always dark text for readability on white paper */
+        }
+        
+        /* Custom slider styles */
+        input[type="range"] {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 8px;
+          background: var(--border-color);
+          border-radius: 5px;
+          outline: none;
+          opacity: 0.7;
+          transition: opacity .2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          background: var(--accent-color);
+          cursor: pointer;
+          border-radius: 50%;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          background: var(--accent-color);
+          cursor: pointer;
+          border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <!-- Sidebar / Controls -->
+        <div class="w-full md:w-1/3 lg:w-1/4 p-4 md:p-6 space-y-6 overflow-y-auto bg-opacity-50 backdrop-blur-md" style="background-color: color-mix(in srgb, var(--bg-secondary) 50%, transparent);">
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold text-primary">Cover Letter Details</h2>
+                <div>
+                    <label for="name" class="block text-sm font-medium text-secondary">Full Name</label>
+                    <input type="text" id="name" placeholder="e.g., Jane Doe" class="mt-1 block w-full rounded-md border p-2 form-input">
+                </div>
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-secondary">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="e.g., (555) 123-4567" class="mt-1 block w-full rounded-md border p-2 form-input">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-secondary">Email Address</label>
+                    <input type="email" id="email" placeholder="e.g., jane.doe@email.com" class="mt-1 block w-full rounded-md border p-2 form-input">
+                </div>
+                <div>
+                    <label for="company" class="block text-sm font-medium text-secondary">Company Name</label>
+                    <input type="text" id="company" placeholder="e.g., Google" class="mt-1 block w-full rounded-md border p-2 form-input">
+                </div>
+                <div>
+                    <label for="position" class="block text-sm font-medium text-secondary">Position</label>
+                    <input type="text" id="position" placeholder="e.g., Software Engineer Intern" class="mt-1 block w-full rounded-md border p-2 form-input">
+                </div>
+                 <div>
+                    <label for="education" class="block text-sm font-medium text-secondary">Education</label>
+                    <textarea id="education" placeholder="e.g., Bachelor of Science in Computer Science, XYZ University, 2024" class="mt-1 block w-full rounded-md border p-2 form-textarea" rows="2"></textarea>
+                </div>
+                 <div>
+                    <label for="skills" class="block text-sm font-medium text-secondary">Key Skills</label>
+                    <textarea id="skills" placeholder="e.g., Python, JavaScript, React, SQL, Project Management" class="mt-1 block w-full rounded-md border p-2 form-textarea" rows="3"></textarea>
+                </div>
+                 <div>
+                    <label for="experience" class="block text-sm font-medium text-secondary">Experience / Internships</label>
+                    <textarea id="experience" placeholder="e.g., Software Engineer Intern at ABC Corp - Developed a new feature for the company's main product." class="mt-1 block w-full rounded-md border p-2 form-textarea" rows="4"></textarea>
+                </div>
+                 <div>
+                    <label for="projects" class="block text-sm font-medium text-secondary">Past Projects</label>
+                    <textarea id="projects" placeholder="e.g., Personal Portfolio Website - Built with React and Tailwind CSS to showcase my work." class="mt-1 block w-full rounded-md border p-2 form-textarea" rows="4"></textarea>
+                </div>
+                <button id="generate-btn" class="w-full text-white font-bold py-2 px-4 rounded-lg transition" style="background-color: var(--accent-color);">
+                    Generate Paragraphs
+                </button>
+            </div>
+            
+            <div id="ai-suggestions" class="space-y-6 hidden">
+                 <!-- Loading Spinner -->
+                <div id="loading-spinner" class="hidden flex justify-center items-center py-8">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2" style="border-color: var(--accent-color);"></div>
+                </div>
+
+                <!-- Paragraph Sections -->
+                <div id="opening-section" class="space-y-2">
+                    <h3 class="font-semibold">Opening Paragraph</h3>
+                    <div id="opening-options" class="space-y-2"></div>
+                </div>
+                <div id="body-section" class="space-y-2">
+                    <h3 class="font-semibold">Body Paragraph</h3>
+                    <div id="body-options" class="space-y-2"></div>
+                </div>
+                <div id="closing-section" class="space-y-2">
+                    <h3 class="font-semibold">Closing Paragraph</h3>
+                    <div id="closing-options" class="space-y-2"></div>
+                </div>
+            </div>
+
+             <div>
+                <label for="complimentary-close" class="block text-sm font-medium text-secondary">Complimentary Close</label>
+                <input type="range" id="complimentary-close" min="0" max="4" value="0" class="w-full mt-2">
+                <p class="text-center font-medium mt-1" id="close-label" style="color: var(--accent-color);">Sincerely</p>
+            </div>
+        </div>
+
+        <!-- Main Editor View -->
+        <div class="flex-1 p-4 md:p-8">
+            <!-- Toolbar -->
+            <div class="flex flex-wrap items-center justify-between mb-4 p-2 rounded-lg editor-container shadow-md">
+                <div class="flex items-center space-x-4">
+                    <select id="font-selector" class="rounded-md border p-2 font-select">
+                        <option value="'Inter', sans-serif">Inter</option>
+                        <option value="'Roboto', sans-serif">Roboto</option>
+                        <option value="'Lato', sans-serif">Lato</option>
+                        <option value="'Merriweather', serif">Merriweather</option>
+                        <option value="'Montserrat', sans-serif">Montserrat</option>
+                    </select>
+
+                    <button id="theme-toggle" class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2" style="background-color: var(--bg-primary); focus:ring-color: var(--accent-color);">
+                        <svg id="theme-icon" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <!-- Icon will be set by JS -->
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex items-center space-x-2 mt-2 sm:mt-0">
+                    <button id="download-pdf" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition text-sm">PDF</button>
+                    <button id="download-docx" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition text-sm">DOCX</button>
+                    <button id="download-txt" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition text-sm">TXT</button>
+                </div>
+            </div>
+
+            <!-- Document -->
+            <div id="editor" class="p-8 md:p-12 lg:p-16 editor-container shadow-lg rounded-lg max-w-4xl mx-auto">
+                 <div id="cover-letter-preview" class="prose max-w-full">
+                    <div id="doc-header">
+                        <h1 id="doc-name" class="text-3xl font-bold mb-0">Your Name</h1>
+                        <p class="text-sm">
+                            <span id="doc-phone">Your Phone</span> | <span id="doc-email">Your Email</span>
+                        </p>
+                    </div>
+                    <br>
+                    <p id="doc-date" class="text-sm"></p>
+                    <br>
+                    <p id="doc-recipient" class="font-semibold">Hiring Manager</p>
+                    <p id="doc-company" class="font-semibold">Company Name</p>
+                    <br>
+                    <p>Dear Hiring Manager,</p>
+                    <br>
+                    <p id="doc-opening-para">Select an opening paragraph from the options after generating.</p>
+                    <br>
+                    <p id="doc-body-para">Select a body paragraph from the options after generating.</p>
+                    <br>
+                    <p id="doc-closing-para">Select a closing paragraph from the options after generating.</p>
+                    <br>
+                    <p id="doc-close">Sincerely,</p>
+                    <p id="doc-final-name">Your Name</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const nameInput = document.getElementById('name');
+        const phoneInput = document.getElementById('phone');
+        const emailInput = document.getElementById('email');
+        const companyInput = document.getElementById('company');
+        const positionInput = document.getElementById('position');
+        const educationInput = document.getElementById('education');
+        const skillsInput = document.getElementById('skills');
+        const experienceInput = document.getElementById('experience');
+        const projectsInput = document.getElementById('projects');
+
+        const generateBtn = document.getElementById('generate-btn');
+        const aiSuggestions = document.getElementById('ai-suggestions');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        
+        const openingOptionsDiv = document.getElementById('opening-options');
+        const bodyOptionsDiv = document.getElementById('body-options');
+        const closingOptionsDiv = document.getElementById('closing-options');
+
+        const docName = document.getElementById('doc-name');
+        const docPhone = document.getElementById('doc-phone');
+        const docEmail = document.getElementById('doc-email');
+        const docDate = document.getElementById('doc-date');
+        const docCompany = document.getElementById('doc-company');
+        const docOpeningPara = document.getElementById('doc-opening-para');
+        const docBodyPara = document.getElementById('doc-body-para');
+        const docClosingPara = document.getElementById('doc-closing-para');
+        const docClose = document.getElementById('doc-close');
+        const docFinalName = document.getElementById('doc-final-name');
+        
+        const coverLetterPreview = document.getElementById('cover-letter-preview');
+        const fontSelector = document.getElementById('font-selector');
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const closeSlider = document.getElementById('complimentary-close');
+        const closeLabel = document.getElementById('close-label');
+
+        const downloadPdfBtn = document.getElementById('download-pdf');
+        const downloadDocxBtn = document.getElementById('download-docx');
+        const downloadTxtBtn = document.getElementById('download-txt');
+        
+        const closeOptions = ['Sincerely', 'Best regards', 'Yours truly', 'Respectfully', 'Kind regards'];
+
+        // --- Event Listeners ---
+        nameInput.addEventListener('input', e => {
+            docName.textContent = e.target.value || 'Your Name';
+            docFinalName.textContent = e.target.value || 'Your Name';
+        });
+        phoneInput.addEventListener('input', e => docPhone.textContent = e.target.value || 'Your Phone');
+        emailInput.addEventListener('input', e => docEmail.textContent = e.target.value || 'Your Email');
+        companyInput.addEventListener('input', e => docCompany.textContent = e.target.value || 'Company Name');
+        
+        fontSelector.addEventListener('change', e => {
+            coverLetterPreview.style.fontFamily = e.target.value;
+        });
+
+        closeSlider.addEventListener('input', e => {
+            const value = closeOptions[e.target.value];
+            closeLabel.textContent = value;
+            docClose.textContent = value + ',';
+        });
+
+        themeToggle.addEventListener('click', toggleTheme);
+
+        generateBtn.addEventListener('click', handleGeneration);
+        
+        downloadPdfBtn.addEventListener('click', downloadPDF);
+        downloadDocxBtn.addEventListener('click', downloadDOCX);
+        downloadTxtBtn.addEventListener('click', downloadTXT);
+
+
+        // --- Initial Setup ---
+        function initializeApp() {
+            docDate.textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            checkTheme();
+        }
+
+        // --- Theme Management ---
+        function checkTheme() {
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            updateThemeIcon(isDarkMode);
+        }
+
+        function toggleTheme() {
+            const isDarkMode = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+            updateThemeIcon(isDarkMode);
+        }
+        
+        function updateThemeIcon(isDarkMode) {
+            if (isDarkMode) {
+                 themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>`; // Sun
+            } else {
+                themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>`; // Moon
+            }
+        }
+
+
+        // --- AI Generation ---
+        async function handleGeneration() {
+            const company = companyInput.value.trim();
+            const position = positionInput.value.trim();
+
+            if (!company || !position) {
+                alert('Please provide both company and position.');
+                return;
+            }
+
+            const userDetails = {
+                education: educationInput.value.trim(),
+                skills: skillsInput.value.trim(),
+                experience: experienceInput.value.trim(),
+                projects: projectsInput.value.trim()
+            };
+
+            aiSuggestions.classList.remove('hidden');
+            loadingSpinner.classList.remove('hidden');
+            clearOptions();
+
+            try {
+                const prompt = `Generate three distinct options for each of the three paragraphs of a student's cover letter: opening, body, and closing. The student is applying for a ${position} position at ${company}. The tone should be professional, enthusiastic, and tailored. 
+                
+                Incorporate the following details into the paragraphs, especially the body paragraph:
+                - Education: ${userDetails.education || 'Not provided'}
+                - Key Skills: ${userDetails.skills || 'Not provided'}
+                - Experience/Internships: ${userDetails.experience || 'Not provided'}
+                - Past Projects: ${userDetails.projects || 'Not provided'}
+
+                Focus on keywords that would pass through an AI-based applicant tracking system (ATS). Structure the output as a JSON object with keys "opening", "body", and "closing". Each key should have an array of three string options.`;
+                
+                const systemPrompt = "You are a world-class career coach who specializes in writing compelling, ATS-friendly cover letters for students. Your responses should be structured, professional, and directly useful. You must weave the student's specific details (skills, projects, experience) into the generated paragraphs to make them highly personalized.";
+
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                    }
+                };
+                
+                let responseText = '';
+                // Basic retry logic
+                for (let i = 0; i < 3; i++) {
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`API call failed with status: ${response.status}`);
+                        }
+                        
+                        const result = await response.json();
+                        responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if(responseText) break; // success
+                    } catch (error) {
+                         if (i === 2) throw error; // throw on last attempt
+                         await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+                    }
+                }
+                
+                if (!responseText) {
+                    throw new Error("No content received from AI.");
+                }
+
+                const generatedParagraphs = JSON.parse(responseText);
+                displayOptions(generatedParagraphs);
+
+            } catch (error) {
+                console.error("Error generating paragraphs:", error);
+                alert("Failed to generate paragraphs. Please check the console and try again.");
+                openingOptionsDiv.innerHTML = `<p class="text-red-500">Error fetching suggestions.</p>`;
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+        
+        function clearOptions() {
+            openingOptionsDiv.innerHTML = '';
+            bodyOptionsDiv.innerHTML = '';
+            closingOptionsDiv.innerHTML = '';
+        }
+
+        function displayOptions(paragraphs) {
+            populateSection(openingOptionsDiv, paragraphs.opening, 'opening', docOpeningPara);
+            populateSection(bodyOptionsDiv, paragraphs.body, 'body', docBodyPara);
+            populateSection(closingOptionsDiv, paragraphs.closing, 'closing', docClosingPara);
+        }
+
+        function populateSection(container, options, type, targetElement) {
+            options.forEach((optionText, index) => {
+                const div = document.createElement('div');
+                div.textContent = optionText;
+                div.className = 'p-3 rounded-lg paragraph-option';
+                div.dataset.type = type;
+                div.onclick = () => {
+                    targetElement.textContent = optionText;
+                    // Handle selection style
+                    container.querySelectorAll('.paragraph-option').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected');
+                };
+                container.appendChild(div);
+            });
+             // Auto-select the first option
+            if (options.length > 0) {
+                 container.children[0].click();
+            }
+        }
+
+        // --- Download Functionality ---
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const content = document.getElementById('cover-letter-preview');
+            
+            html2canvas(content, { scale: 2 }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const ratio = canvasWidth / canvasHeight;
+                const width = pdfWidth - 20; // with margin
+                const height = width / ratio;
+                
+                pdf.addImage(imgData, 'PNG', 10, 10, width, height);
+                pdf.save('cover-letter.pdf');
+            });
+        }
+        
+        async function downloadDOCX() {
+            const content = document.getElementById('editor').innerHTML;
+            const blob = await htmlToDocx.asBlob(content);
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'cover-letter.docx';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function downloadTXT() {
+            const content = document.getElementById('cover-letter-preview');
+            const text = content.innerText;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'cover-letter.txt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- Run on Load ---
+        initializeApp();
+    </script>
+</body>
+</html>
+
