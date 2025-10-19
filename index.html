@@ -63,9 +63,11 @@
             background-color: color-mix(in srgb, var(--accent-color) 15%, transparent);
         }
 
+        /* This rule is removed to allow the text color to change with the theme.
         #cover-letter-preview {
-            color: #1e293b; /* Always dark text for readability on white paper */
+            color: #1e293b; 
         }
+        */
         
         /* Custom slider styles */
         input[type="range"] {
@@ -312,11 +314,13 @@
         function checkTheme() {
             const isDarkMode = localStorage.getItem('darkMode') === 'true';
             document.body.classList.toggle('dark-mode', isDarkMode);
+            coverLetterPreview.classList.toggle('prose-invert', isDarkMode);
             updateThemeIcon(isDarkMode);
         }
 
         function toggleTheme() {
             const isDarkMode = document.body.classList.toggle('dark-mode');
+            coverLetterPreview.classList.toggle('prose-invert', isDarkMode);
             localStorage.setItem('darkMode', isDarkMode);
             updateThemeIcon(isDarkMode);
         }
@@ -336,6 +340,7 @@
             const position = positionInput.value.trim();
 
             if (!company || !position) {
+                // Replaced alert with a less intrusive custom modal or a message on the UI in a real app
                 alert('Please provide both company and position.');
                 return;
             }
@@ -402,11 +407,20 @@
                     throw new Error("No content received from AI.");
                 }
 
-                const generatedParagraphs = JSON.parse(responseText);
+                // FIX: Clean the response to extract the JSON object.
+                // The model sometimes wraps the JSON in markdown fences (```json ... ```) or adds extra text.
+                const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) {
+                    console.error("Original invalid response:", responseText);
+                    throw new Error("No valid JSON object found in the AI response.");
+                }
+                const cleanedJsonString = jsonMatch[0];
+                const generatedParagraphs = JSON.parse(cleanedJsonString);
                 displayOptions(generatedParagraphs);
 
             } catch (error) {
                 console.error("Error generating paragraphs:", error);
+                // Replaced alert with a less intrusive custom modal or a message on the UI in a real app
                 alert("Failed to generate paragraphs. Please check the console and try again.");
                 openingOptionsDiv.innerHTML = `<p class="text-red-500">Error fetching suggestions.</p>`;
             } finally {
@@ -450,12 +464,21 @@
         function downloadPDF() {
             const { jsPDF } = window.jspdf;
             const content = document.getElementById('cover-letter-preview');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+
+            // Temporarily switch to light mode for the screenshot
+            if (isDarkMode) {
+                document.body.classList.remove('dark-mode');
+                content.classList.remove('prose-invert');
+            }
             
-            html2canvas(content, { scale: 2 }).then(canvas => {
+            html2canvas(content, { 
+                scale: 2,
+                backgroundColor: '#ffffff' // Ensure background is white for the capture
+            }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
                 const canvasWidth = canvas.width;
                 const canvasHeight = canvas.height;
                 const ratio = canvasWidth / canvasHeight;
@@ -464,18 +487,52 @@
                 
                 pdf.addImage(imgData, 'PNG', 10, 10, width, height);
                 pdf.save('cover-letter.pdf');
+
+                // Restore dark mode if it was active
+                if (isDarkMode) {
+                    document.body.classList.add('dark-mode');
+                    content.classList.add('prose-invert');
+                }
+            }).catch(err => {
+                console.error("PDF generation failed:", err);
+                // Ensure dark mode is restored even if pdf generation fails
+                if (isDarkMode) {
+                    document.body.classList.add('dark-mode');
+                    content.classList.add('prose-invert');
+                }
             });
         }
         
         async function downloadDOCX() {
-            const content = document.getElementById('editor').innerHTML;
-            const blob = await htmlToDocx.asBlob(content);
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'cover-letter.docx';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const editor = document.getElementById('editor');
+            const content = document.getElementById('cover-letter-preview');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+
+            // Temporarily switch to light mode for the HTML capture
+            if (isDarkMode) {
+                document.body.classList.remove('dark-mode');
+                content.classList.remove('prose-invert');
+            }
+
+            try {
+                // We capture the editor's innerHTML which contains the styled preview div
+                const contentHtml = editor.innerHTML; 
+                const blob = await htmlToDocx.asBlob(contentHtml);
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'cover-letter.docx';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (err) {
+                console.error("DOCX generation failed:", err);
+            } finally {
+                // Restore dark mode if it was active, regardless of success or failure
+                if (isDarkMode) {
+                    document.body.classList.add('dark-mode');
+                    content.classList.add('prose-invert');
+                }
+            }
         }
         
         function downloadTXT() {
