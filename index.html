@@ -63,11 +63,9 @@
             background-color: color-mix(in srgb, var(--accent-color) 15%, transparent);
         }
 
-        /* This rule is removed to allow the text color to change with the theme.
         #cover-letter-preview {
-            color: #1e293b; 
+            color: #1e293b; /* Always dark text for readability on white paper */
         }
-        */
         
         /* Custom slider styles */
         input[type="range"] {
@@ -314,13 +312,11 @@
         function checkTheme() {
             const isDarkMode = localStorage.getItem('darkMode') === 'true';
             document.body.classList.toggle('dark-mode', isDarkMode);
-            coverLetterPreview.classList.toggle('prose-invert', isDarkMode);
             updateThemeIcon(isDarkMode);
         }
 
         function toggleTheme() {
             const isDarkMode = document.body.classList.toggle('dark-mode');
-            coverLetterPreview.classList.toggle('prose-invert', isDarkMode);
             localStorage.setItem('darkMode', isDarkMode);
             updateThemeIcon(isDarkMode);
         }
@@ -454,21 +450,12 @@
         function downloadPDF() {
             const { jsPDF } = window.jspdf;
             const content = document.getElementById('cover-letter-preview');
-            const isDarkMode = document.body.classList.contains('dark-mode');
-
-            // Temporarily switch to light mode for the screenshot
-            if (isDarkMode) {
-                document.body.classList.remove('dark-mode');
-                content.classList.remove('prose-invert');
-            }
             
-            html2canvas(content, { 
-                scale: 2,
-                backgroundColor: '#ffffff' // Ensure background is white for the capture
-            }).then(canvas => {
+            html2canvas(content, { scale: 2 }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
                 const canvasWidth = canvas.width;
                 const canvasHeight = canvas.height;
                 const ratio = canvasWidth / canvasHeight;
@@ -477,52 +464,18 @@
                 
                 pdf.addImage(imgData, 'PNG', 10, 10, width, height);
                 pdf.save('cover-letter.pdf');
-
-                // Restore dark mode if it was active
-                if (isDarkMode) {
-                    document.body.classList.add('dark-mode');
-                    content.classList.add('prose-invert');
-                }
-            }).catch(err => {
-                console.error("PDF generation failed:", err);
-                // Ensure dark mode is restored even if pdf generation fails
-                if (isDarkMode) {
-                    document.body.classList.add('dark-mode');
-                    content.classList.add('prose-invert');
-                }
             });
         }
         
         async function downloadDOCX() {
-            const editor = document.getElementById('editor');
-            const content = document.getElementById('cover-letter-preview');
-            const isDarkMode = document.body.classList.contains('dark-mode');
-
-            // Temporarily switch to light mode for the HTML capture
-            if (isDarkMode) {
-                document.body.classList.remove('dark-mode');
-                content.classList.remove('prose-invert');
-            }
-
-            try {
-                // We capture the editor's innerHTML which contains the styled preview div
-                const contentHtml = editor.innerHTML; 
-                const blob = await htmlToDocx.asBlob(contentHtml);
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'cover-letter.docx';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } catch (err) {
-                console.error("DOCX generation failed:", err);
-            } finally {
-                // Restore dark mode if it was active, regardless of success or failure
-                if (isDarkMode) {
-                    document.body.classList.add('dark-mode');
-                    content.classList.add('prose-invert');
-                }
-            }
+            const content = document.getElementById('editor').innerHTML;
+            const blob = await htmlToDocx.asBlob(content);
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'cover-letter.docx';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
         
         function downloadTXT() {
