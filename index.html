@@ -370,7 +370,6 @@
                 const systemPrompt = "You are a world-class career coach who specializes in writing compelling, ATS-friendly cover letters for students. Your responses should be structured, professional, and directly useful. You must weave the student's specific details (skills, projects, experience) into the generated paragraphs to make them highly personalized.";
 
                 const apiKey = ""; 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
                 const payload = {
                     contents: [{ parts: [{ text: prompt }] }],
@@ -384,11 +383,11 @@
                 // Basic retry logic
                 for (let i = 0; i < 3; i++) {
                     try {
-                        const response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
+                        const response = await fetch('/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload) // The payload is sent to our function
+                                });
 
                         if (!response.ok) {
                             throw new Error(`API call failed with status: ${response.status}`);
