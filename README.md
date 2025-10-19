@@ -1,4 +1,4 @@
-# coverLetters.GEMINIAI
+CURRENT WORKING VERSION
 A cover letter generator
 
 Features:
