@@ -414,7 +414,11 @@
                     console.error("Original invalid response:", responseText);
                     throw new Error("No valid JSON object found in the AI response.");
                 }
-                const cleanedJsonString = jsonMatch[0];
+                let cleanedJsonString = jsonMatch[0];
+
+                // FIX 2: Remove trailing commas from arrays and objects, a common AI error.
+                cleanedJsonString = cleanedJsonString.replace(/,\s*([\]\}])/g, '$1');
+
                 const generatedParagraphs = JSON.parse(cleanedJsonString);
                 displayOptions(generatedParagraphs);
 
