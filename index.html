@@ -10,7 +10,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://unpkg.com/html-to-docx@1.8.0/dist/html-to-docx.js"></script>
 
-    
     <style>
         :root {
             --bg-primary: #e0f2fe; /* light blue */
@@ -529,4 +528,18 @@
         function downloadTXT() {
             const content = document.getElementById('cover-letter-preview');
             const text = content.innerText;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'cover-letter.txt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- Run on Load ---
+        initializeApp();
+    </script>
+</body>
+</html>
 
