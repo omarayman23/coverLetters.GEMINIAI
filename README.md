@@ -2,7 +2,6 @@ CURRENT WORKING VERSION
 A cover letter generator
 
 Features:
-- back-end serverless function, powered by Google AI
 - tailors cover letter based off extra information entered by the user (work/intern experience, skills, past projects, etc)
 - helps with more recognition; ai uses words detected through hiring filters 
 - shows changes to cover letter in real time
