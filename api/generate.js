@@ -1,8 +1,5 @@
-// This is our secure Vercel serverless function.
-// It acts as a proxy to the Google Gemini API.
 
 export default async function handler(request, response) {
-  // We only allow POST requests to this function
   if (request.method !== 'POST') {
     return response.status(405).json({ message: 'Method Not Allowed' });
   }
